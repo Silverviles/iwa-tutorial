@@ -2,10 +2,15 @@ class TCPServer {
   private serverSocket: TCPServerSocket;
   private clientList: String[] = [];
 
+  // Backlog value will be assigned as OS default.
+  // To manually add a value, add the second parameter as the backlog to the options variable
   constructor(
     private localAddress: string,
-    private options?: TCPServerSocketOptions
+    private localPort: number
   ) {
+    var options: TCPServerSocketOptions = {
+      localPort
+    }
     this.serverSocket = new TCPServerSocket(localAddress, options);
   }
 
@@ -18,7 +23,7 @@ class TCPServer {
 
   private async handleConnections(readable: ReadableStream<TCPSocket>) {
     const reader = readable.getReader();
-    try {
+    try { // TODO: Need a better way to handle the listening time of the server. A switch to turn it off.
       while (true) {
         const { value: clientSocket, done } = await reader.read();
         if (done) break;
@@ -30,6 +35,8 @@ class TCPServer {
     }
   }
 
+  // TODO: Allow client to send many messages and initiate the connection termination as well.
+  // TODO: Allow support for multiple clients and distinguish between them
   private async handleClient(socket: TCPSocket) {
     const { readable, writable, remoteAddress, remotePort } =
       await socket.opened;
